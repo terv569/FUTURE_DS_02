@@ -1,0 +1,184 @@
+# Advertising Channel Performance & Spend Efficiency Dashboard
+
+## 1. Purpose
+
+This dashboard shows how advertising spend across different channels translates into product sales and efficiency.  
+It is built in Power BI on top of a long-format dataset (one row per channel/spend/sales record).
+
+It answers these questions:
+- How much are we spending in total, and how many products are we selling?
+- Which channels get the most spend and the most sales?
+- Which channels are most efficient (sales per unit of spend)?
+- How is total spend distributed across channels?
+
+## 2. Data Structure
+
+**Source table**  
+- File: `Advertising_Data_Long.csv` (imported into Power BI as table `Advertising_Long`)
+
+**Columns**
+- `Channel` (text)  
+  Example: `TV`, `Billboards`, `Google_Ads`, etc.
+- `Spend` (numeric)  
+  Advertising cost for that record.
+- `Product_Sold` (numeric)  
+  Number of products sold associated with that spend.
+
+**Assumptions**
+- Numeric fields (`Spend`, `Product_Sold`) are cleaned and stored as numbers.
+- Each row is an observation for a given channel and spend amount.
+- No date/region dimensions are used in the current version (the analysis is over the full dataset as a whole).
+
+If you add dates or regions later, connect them via a star-schema model (Date/Region dimension tables linked to `Advertising_Long`).
+
+## 3. Measures (DAX)
+
+All measures are created in the `Advertising_Long` table.
+
+### 3.1 Total Spend
+
+```DAX
+Total Spend = SUM(Advertising_Long[Spend])
+```
+
+### 3.2 Total Product Sold
+
+```DAX
+Total Product Sold = SUM(Advertising_Long[Product_Sold])
+```
+
+### 3.3 Average Product Sold (optional)
+
+```DAX
+Average Product Sold = AVERAGE(Advertising_Long[Product_Sold])
+```
+
+### 3.4 Sales per Spend (efficiency)
+
+```DAX
+Sales per Spend =
+    DIVIDE(
+        [Total Product Sold],
+        [Total Spend]
+    )
+```
+
+Interpretation: higher `Sales per Spend` means more products sold per unit of currency spent (better efficiency).
+
+## 4. Dashboard Layout & Visuals
+
+The main report page title is:
+
+`Advertising Channel Performance & Spend Efficiency`
+
+The page is structured as a top KPI strip with detailed visuals underneath.
+
+### 4.1 KPI Cards (top row)
+
+Visual type: *Card*
+
+Card 1: **Total Spend**  
+- Field: `[Total Spend]`  
+- Format: Currency or whole number (depending on your reporting standard).
+
+Card 2: **Total Product Sold**  
+- Field: `[Total Product Sold]`
+
+Card 3: **Sales per Spend**  
+- Field: `[Sales per Spend]`  
+- Format: Decimal with 2–3 decimal places.
+
+These provide a quick snapshot of overall performance across all channels.
+
+### 4.2 Total Spend and Sales by Channel
+
+Visual type: *Clustered Column Chart*
+
+- Axis: `Channel`  
+- Values: `[Total Spend]`, `[Total Product Sold]`
+
+Purpose: compare how much you spend and how many products you sell per channel on the same visual.
+
+Tips:
+- Turn on data labels for readability.
+- If scales are very different, use a secondary axis for one of the measures.
+
+### 4.3 Channel Efficiency (Sales per Spend)
+
+Visual type: *Column or Bar Chart*
+
+- Axis: `Channel`  
+- Values: `[Sales per Spend]`
+
+Purpose: show which channels are most efficient in turning spend into sales.
+
+Tips:
+- Sort by `[Sales per Spend]` descending so the best channels appear first.
+
+### 4.4 Spend vs Product Sold (Scatter)
+
+Visual type: *Scatter Chart*
+
+- X-axis: `Spend` (SUM or AVG)  
+- Y-axis: `Product_Sold` (SUM or AVG)  
+- Legend: `Channel`  
+- Details: (optional) keep blank or use `Channel` to aggregate points at channel level.
+
+Purpose: visualize the relationship between spend and sales, and spot outliers.
+
+Tips:
+- Add a trend line from the Analytics pane to see overall correlation.
+
+### 4.5 Share of Spend by Channel (Donut)
+
+Visual type: *Donut Chart*
+
+- Legend: `Channel`  
+- Values: `[Total Spend]`
+
+Purpose: show how total advertising budget is allocated across channels.
+
+Tips:
+- Set labels to show category and percent of total.
+- Title example: `Share of Spend by Channel`.
+
+## 5. Naming & Style Guidelines
+
+Table name:  
+- `Advertising_Long`
+
+Measure names:  
+- Use readable names with spaces, e.g. `Total Spend`, `Sales per Spend`.
+
+Visual titles:  
+- `Total Spend and Sales by Channel`
+- `Channel Efficiency (Sales per Spend)`
+- `Spend vs Product Sold by Channel`
+- `Share of Spend by Channel`
+
+Keep fonts and colors consistent across visuals for a clean, professional look.
+
+## 6. How to Use This Dashboard
+
+Start with the **KPI cards** to understand the big picture (total spend, total sales, efficiency).  
+Then use the breakdown visuals to answer:
+
+- Which channels are driving the most sales relative to their spend?  
+- Are we over-investing in low-efficiency channels?  
+- Does the budget allocation (donut chart) match the performance (efficiency chart)?
+
+If slicers are added (e.g. channel groups, time, region), use them to filter all visuals and compare segments.
+
+## 7. Future Enhancements
+
+This first version is intentionally simple and channel-focused. Possible next steps:
+
+- Add a **Date** dimension for time-series trends (month, quarter, year).
+- Add **Region/Market** to compare performance geographically.
+- Add revenue, margin, clicks, impressions, or conversions and define:
+  - `Revenue per Spend`
+  - `Conversions per Spend`
+  - Full ROI metrics.
+- Create**drill-through pages** for each channel with more detailed diagnostics.
+
+---
